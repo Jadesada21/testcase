@@ -9,6 +9,7 @@ import { EventsModule } from './events/events.module';
 import { AuthModule } from './auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -40,7 +41,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
     AdminModule,
     RedisModule,
     EventsModule,
-    AuthModule],
+    AuthModule,
+    UserModule],
   controllers: [AppController],
   providers: [AppService],
 })

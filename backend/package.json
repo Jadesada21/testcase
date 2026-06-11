@@ -30,6 +30,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.1.26",
     "@nestjs/websockets": "^11.1.26",
+    "class-validator": "^0.15.1",
     "ioredis": "^5.11.1",
     "mongoose": "^9.7.0",
     "passport": "^0.7.0",
