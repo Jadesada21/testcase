@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModule } from '@nestjs/mongoose'
+import { Model } from 'mongoose'
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 
