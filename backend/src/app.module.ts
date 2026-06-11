@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BookingsModule } from './bookings/bookings.module';
@@ -18,7 +18,20 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI')
+        uri: configService.get<string>('MONGODB_URI'),
+        connectionFactory: (connection) => {
+          Logger.log(`MongoDB state: ${connection.readyState}`, 'Mongoose');
+          if (connection.readyState === 1) {
+            Logger.log('MongoDB already connected', 'Mongoose');
+          }
+          connection.on('connected', () => {
+            Logger.log('MongoDB connected', 'Mongoose');
+          });
+          connection.on('error', (error) => {
+            Logger.error('MongoDB connection error', error, 'Mongoose');
+          });
+          return connection;
+        }
       }),
       inject: [ConfigService],
     }),
