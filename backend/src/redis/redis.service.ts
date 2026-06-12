@@ -19,14 +19,17 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         this.client.quit()
     }
 
-    async acquireLock(key: string, ttlMs = 5000): Promise<boolean> {
+    async acquireLock(key: string, value: string, ttlMs = 5000): Promise<boolean> {
         const result = await this.client.set(
-            `Lock:${key}`, '1', 'PX', ttlMs, 'NX'
+            `Lock:${key}`, value, 'PX', ttlMs, 'NX'
         )
         return result === 'OK'
     }
 
-    async releaseLock(key: string): Promise<void> {
-        await this.client.del(`Lock:${key}`)
+    async releaseLock(key: string, value: string): Promise<void> {
+        const currentValue = await this.client.get(`Lock:${key}`)
+        if (currentValue === value) {
+            await this.client.del(`Lock:${key}`)
+        }
     }
 }

@@ -1,26 +1,68 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { UpdateBookingDto } from './dto/update-booking.dto';
+import { Booking } from './schema/bookings.schema';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { Seat, SeatStatus } from '../seats/schema/seats.schema';
+import { RedisService } from '../redis/redis.service';
+import { ResponseDto } from './schema/response.dto';
 
 @Injectable()
 export class BookingsService {
-  create(createBookingDto: CreateBookingDto) {
-    return 'This action adds a new booking';
+  constructor(
+    @InjectModel(Booking.name) private bookingModel: Model<Booking>,
+    @InjectModel(Seat.name) private seatModel: Model<Seat>,
+    private redisService: RedisService,
+  ) { }
+
+
+  async createBooking(userId: string, createBookingDto: CreateBookingDto): Promise<ResponseDto> {
+    const { seatNumber } = createBookingDto
+
+    const lockKey = `lock:seat:${seatNumber}`
+    const lockValue = `${userId}-${Date.now()}`
+    const lockTTL = 5
+
+    const acquired = await this.redisService.acquireLock(
+      lockKey,
+      lockValue,
+      lockTTL,
+    )
+
+    if (!acquired) {
+      throw new BadRequestException('Seat has been Locked , Please wait a minute')
+    }
+
+    try {
+      const seat = await this.seatModel.findOne({ seatNumber })
+      if (!seat) {
+        throw new BadRequestException('Not found seat')
+      }
+
+      if (seat.status !== SeatStatus.AVAILABLE) {
+        throw new BadRequestException('Seat not available')
+      }
+
+      seat.status = SeatStatus.RESERVED
+      await seat.save()
+
+      const booking = await this.bookingModel.create({
+        userId,
+        seatId: seat._id,
+      })
+
+      return {
+        bookingId: booking._id.toString(),
+        seatNumber,
+        status: 'RESERVED'
+      }
+    } finally {
+      await this.redisService.releaseLock(lockKey, lockValue)
+    }
   }
 
-  findAll() {
-    return `This action returns all bookings`;
-  }
 
-  findOne(id: number) {
-    return `This action returns a #${id} booking`;
-  }
-
-  update(id: number, updateBookingDto: UpdateBookingDto) {
-    return `This action updates a #${id} booking`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} booking`;
+  async getUserBookings(userId: string): Promise<Booking[]> {
+    return this.bookingModel.find({ userId }).populate('seatId').exec()
   }
 }
