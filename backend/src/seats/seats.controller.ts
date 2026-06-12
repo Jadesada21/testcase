@@ -5,30 +5,20 @@ import { UpdateSeatDto } from './dto/update-seat.dto';
 
 @Controller('seats')
 export class SeatsController {
-  constructor(private readonly seatsService: SeatsService) {}
-
-  @Post()
-  create(@Body() createSeatDto: CreateSeatDto) {
-    return this.seatsService.create(createSeatDto);
-  }
+  constructor(private readonly seatsService: SeatsService) { }
 
   @Get()
   findAll() {
     return this.seatsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.seatsService.findOne(+id);
+  @Get(':seatNumber')
+  findOne(@Param('id') seatNumber: string) {
+    return this.seatsService.findOne(seatNumber);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSeatDto: UpdateSeatDto) {
-    return this.seatsService.update(+id, updateSeatDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.seatsService.remove(+id);
+  @Post('seed')
+  seed() {
+    return this.seatsService.seed()
   }
 }

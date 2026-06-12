@@ -11,6 +11,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { UserModule } from './user/user.module';
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -42,7 +43,8 @@ import { UserModule } from './user/user.module';
     RedisModule,
     EventsModule,
     AuthModule,
-    UserModule],
+    UserModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
