@@ -1,5 +1,6 @@
 import { useAuth } from './hooks/useAuth'
 import { Navigate, Routes, Route } from 'react-router-dom'
+import LoginPage from './pages/LoginPage'
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth()
@@ -15,8 +16,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/" element={<PrivateRoute><HomePage /></PrivateRoute>} />
-      <Route path="/admin" element={<PrivateRoute><AdminPage /></PrivateRoute>} />
+      {/* <Route path="/" element={<PrivateRoute><HomePage /></PrivateRoute>} /> */}
+      {/* <Route path="/admin" element={<PrivateRoute><AdminPage /></PrivateRoute>} /> */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
