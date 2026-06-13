@@ -25,3 +25,10 @@ export interface AuditLog {
     seatNumber: string
     createdAt: string
 }
+
+export interface AdminBookings {
+    status?: string
+    seatNumber?: string
+    userId?: string
+}
+
