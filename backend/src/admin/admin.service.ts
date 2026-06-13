@@ -1,26 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAdminDto } from './dto/create-admin.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Booking } from './schema/booking.schema';
+import { Model } from 'mongoose';
+import { FilterBookingDto } from './dto/filterBooking.dto';
+
 
 @Injectable()
 export class AdminService {
-  create(createAdminDto: CreateAdminDto) {
-    return 'This action adds a new admin';
+  constructor(
+    @InjectModel(Booking.name) private bookingModel: Model<Booking>
+  ) { }
+
+
+  async getAllBookings(filter: FilterBookingDto): Promise<Booking[]> {
+    const query: any = {}
+    if (filter.status) query.status = filter.status
+    if (filter.userId) query.userId = filter.userId
+    if (filter.seatNumber) query.seatNumber = filter.seatNumber
+    return this.bookingModel.find(query).sort({ createdAt: - 1 }).exec()
   }
 
-  findAll() {
-    return `This action returns all admin`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} admin`;
-  }
-
-  update(id: number, updateAdminDto: UpdateAdminDto) {
-    return `This action updates a #${id} admin`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} admin`;
-  }
 }
