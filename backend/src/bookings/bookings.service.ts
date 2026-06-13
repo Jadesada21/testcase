@@ -70,8 +70,11 @@ export class BookingsService {
 
       this.scheduleAutoRelease(booking._id.toString(), seatNumber, lockKey, lockValue)
 
-      return booking
-
+      return {
+        bookingId: booking._id.toString(),
+        seatNumber: booking.seatNumber,
+        status: booking.status
+      }
     } catch (err) {
       await this.redisService.releaseLock(lockKey, lockValue)
       throw err
@@ -129,7 +132,7 @@ export class BookingsService {
     }, LOCK_TTL_SECONDS * 1000)
   }
 
-  async getUserBooking(userId: string): Promise<Booking[]> {
+  async getUserBookings(userId: string): Promise<Booking[]> {
     return this.bookingModel.find({ userId }).populate('seatId').sort({ createdAt: -1 }).exec()
   }
 
