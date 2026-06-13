@@ -19,6 +19,6 @@ export class AdminController {
 
   @Get('audit-log')
   async getAuditLog(@Query('event') event?: string) {
-    return this.adminService.getAuditLog({ event })
+    return this.adminService.getAuditLogs({ event })
   }
 }
