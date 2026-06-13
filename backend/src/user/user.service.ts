@@ -1,35 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { FindOrCreateDto } from './dto/findOrCreate.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schema/user.schema';
 import { Model } from 'mongoose';
+import { UserRole } from './enum/user.enum';
 
 @Injectable()
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
 
-  async create(createUserDto: CreateUserDto) {
-    return this.userModel.create(createUserDto);
+  async findByFirebaseUid(firebaseUid: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ firebaseUid }).exec()
   }
 
-  async findAll(): Promise<UserDocument[]> {
-    return this.userModel.find().exec();
+  async findOrCreate(data: FindOrCreateDto): Promise<UserDocument> {
+    let user = await this.findByFirebaseUid(data.firebaseUid)
+    if (!user) {
+      user = await this.userModel.create({ ...data, role: UserRole.USER })
+    }
+    return user
   }
 
-  async findOne(id: string): Promise<UserDocument | null> {
-    return this.userModel.findById(id).exec();
-  }
-
-  async findByName(name: string): Promise<UserDocument | null> {
-    return this.userModel.findOne({ name }).exec()
-  }
-
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    return this.userModel.findByIdAndUpdate(id, updateUserDto, { new: true }).exec();
-  }
-
-  async remove(id: string): Promise<UserDocument | null> {
-    return this.userModel.findByIdAndDelete(id).exec();
+  async findById(id: string): Promise<UserDocument | null> {
+    return this.userModel.findById(id).exec()
   }
 }
