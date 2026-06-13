@@ -1,3 +1,5 @@
+
+
 export type SeatStatus = "AVAILABLE" | "LOCKED" | "BOOKED"
 
 export interface Seat {
@@ -31,4 +33,3 @@ export interface AdminBookings {
     seatNumber?: string
     userId?: string
 }
-
