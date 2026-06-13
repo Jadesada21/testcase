@@ -1,9 +1,8 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
-import { RegisterDto } from './dto/register.dto';
-import * as bcrypt from 'bcrypt'
-import { LoginDto } from './dto/login.dto';
+
+import { DecodedIdToken, getAuth } from 'firebase-admin/auth';
 
 @Injectable()
 export class AuthService {
@@ -12,28 +11,34 @@ export class AuthService {
         private jwtService: JwtService
     ) { }
 
-    async register(registerDto: RegisterDto) {
-        const existing = await this.usersService.findByName(registerDto.name)
-        if (existing) throw new ConflictException(`name already exist`)
+    async loginWithFirebase(idToken: string) {
+        let decoded: DecodedIdToken
+        try {
+            decoded = await getAuth().verifyIdToken(idToken)
+        } catch {
+            throw new UnauthorizedException(`Invalid Firebase token`)
+        }
 
-        const hashed = await bcrypt.hash(registerDto.password, 10)
-        const user = await this.usersService.create({
-            ...registerDto,
-            password: hashed,
+        const user = await this.usersService.findOrCreate({
+            firebaseUid: decoded.uid,
+            name: decoded.name ?? decoded.email ?? 'Unknown',
+            email: decoded.email ?? ""
         })
 
-        return { message: 'Register successful' }
+        const payload = {
+            sub: user._id.toString(),
+            uid: decoded.uid,
+            role: user.role
+        }
+
+        return {
+            access_token: this.jwtService.sign(payload),
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        }
     }
-
-    async login(loginDto: LoginDto) {
-        const user = await this.usersService.findByName(loginDto.name)
-        if (!user) throw new UnauthorizedException('Invalid Credentials')
-
-        const isMatch = await bcrypt.compare(loginDto.password, user.password)
-        if (!isMatch) throw new UnauthorizedException('Invalid Credentials')
-
-        const payload = { sub: user._id, name: user.name }
-        return { access_token: this.jwtService.sign(payload) }
-    }
-
 }
