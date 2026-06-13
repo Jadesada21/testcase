@@ -2,10 +2,10 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument } from "mongoose";
 
 
-export type AuditLogDocument = HydratedDocument<Auditlog>
+export type AuditLogDocument = HydratedDocument<AuditLog>
 
 @Schema({ timestamps: true })
-export class Auditlog {
+export class AuditLog {
     @Prop({ required: true })
     event!: string
 
@@ -22,4 +22,4 @@ export class Auditlog {
     metadata?: Record<string, any>
 }
 
-export const AuditLogDocument = SchemaFactory.createForClass(Auditlog)
+export const AuditLogSchema = SchemaFactory.createForClass(AuditLog)
