@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { getSeats } from '../api'
+import { getMyBookings, getSeats } from '../api'
 import { useSocket } from '../hooks/useSocket'
 import { useAuth } from '../hooks/useAuth'
-import { type Seat } from '../types'
+import { type Booking, type Seat } from '../types'
 import SeatCard from '../components/SeatCard'
 
 export default function HomePage() {
@@ -14,8 +14,22 @@ export default function HomePage() {
         queryFn: getSeats,
     })
 
+    const { data: myBookings } = useQuery({
+        queryKey: ['myBookings'],
+        queryFn: getMyBookings
+    })
 
-    const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+
+    const rows = ['A', 'B', 'C', 'D', 'E']
+    const displaySeat = [...rows].reverse()
+
+    const seatsByRow = seats.reduce((acc, seat) => {
+        const row = seat.seatNumber[0]
+        if (!acc[row]) acc[row] = []
+
+        acc[row].push(seat)
+        return acc
+    }, {} as Record<string, Seat[]>)
 
     return (
         <div className="min-h-screen bg-gray-950 text-white">
@@ -46,22 +60,25 @@ export default function HomePage() {
 
                     (
                         <div className="flex flex-col gap-3 items-center">
-                            {rows.map((row) => (
+                            {displaySeat.map((row) => (
                                 <div
                                     key={row}
                                     className="flex items-center gap-3"
                                 >
                                     <span className="w-5 text-sm text-gray-500 font-mono">{row}</span>
                                     <div className="flex gap-2">
-                                        {seats
-                                            .filter((s) => s.seatNumber.startsWith(row))
-                                            .sort((a, b) => {
+                                        {seatsByRow[row]
+                                            ?.sort((a, b) => {
                                                 const numA = parseInt(a.seatNumber.slice(1))
                                                 const numB = parseInt(b.seatNumber.slice(1))
                                                 return numA - numB
                                             })
                                             .map((seat) => (
-                                                <SeatCard key={seat._id} seat={seat} />
+                                                <SeatCard
+                                                    key={seat._id}
+                                                    seat={seat}
+                                                    myBooking={myBookings?.find((b: Booking) => b.seatNumber === seat.seatNumber && b.status === 'PENDING')}
+                                                />
                                             ))}
                                     </div>
                                 </div>
@@ -77,7 +94,13 @@ export default function HomePage() {
                         <span className="flex items-center gap-2"><span className="w-4 h-4 rounded bg-yellow-700" /> Locked</span>
                     </span>
                     <span className="flex items-center gap-2">
+                        <span className="flex items-center gap-2"><span className="w-4 h-4 rounded bg-pink-700" /> My Locked</span>
+                    </span>
+                    <span className="flex items-center gap-2">
                         <span className="flex items-center gap-2"><span className="w-4 h-4 rounded bg-red-700" /> Booked</span>
+                    </span>
+                    <span className="flex items-center gap-2">
+                        <span className="flex items-center gap-2"><span className="w-4 h-4 rounded bg-white" /> My Booked</span>
                     </span>
                 </div>
             </div>

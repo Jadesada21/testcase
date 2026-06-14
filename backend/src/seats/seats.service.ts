@@ -20,7 +20,7 @@ export class SeatsService {
   }
 
   async seed(): Promise<{ message: string }> {
-    const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+    const rows = ['A', 'B', 'C', 'D', 'E']
     const cols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     const seats = rows.flatMap(row =>
       cols.map(col => ({ seatNumber: `${row}${col}`, status: SeatStatus.AVAILABLE }))

@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { Booking } from './schema/bookings.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Seat, SeatStatus } from '../seats/schema/seats.schema';
 import { RedisService } from '../redis/redis.service';
@@ -48,6 +48,7 @@ export class BookingsService {
       }
 
       seat.status = SeatStatus.LOCKED
+      seat.lockedBy = new Types.ObjectId(userId)
       await seat.save()
 
       const lockedUntil = new Date(Date.now() + LOCK_TTL_SECONDS * 1000)
@@ -85,7 +86,7 @@ export class BookingsService {
     const booking = await this.bookingModel.findById(bookingId)
     if (!booking) throw new NotFoundException('Not found booking')
     if (booking.userId.toString() !== userId) throw new ForbiddenException()
-    if (booking.status === Status.PENDING) {
+    if (booking.status !== Status.PENDING) {
       throw new BadRequestException(`Booking status is already ${booking.status}`)
     }
 
@@ -97,12 +98,12 @@ export class BookingsService {
     booking.paidAt = new Date()
     await booking.save()
 
-    await this.seatModel.findByIdAndUpdate(
+    await this.seatModel.findOneAndUpdate(
       { seatNumber: booking.seatNumber },
-      { status: SeatStatus.RESERVED }
+      { status: SeatStatus.BOOKED, lockedBy: null }
     )
 
-    await this.redisService.publishSeatUpdate({ seatNumber: booking.seatNumber, status: SeatStatus.RESERVED })
+    await this.redisService.publishSeatUpdate({ seatNumber: booking.seatNumber, status: SeatStatus.BOOKED })
     await this.redisService.publishAuditLog({
       event: 'BOOKING_SUCCESSFUL',
       seatNumber: booking.seatNumber,
@@ -120,9 +121,12 @@ export class BookingsService {
         booking.status = Status.TIMEOUT
         await booking.save()
 
-        await this.seatModel.findByIdAndUpdate({ seatNumber }, { status: SeatStatus.AVAILABLE })
+        await this.seatModel.findOneAndUpdate(
+          { seatNumber },
+          { status: SeatStatus.AVAILABLE, lockedBy: null }
+        )
         await this.redisService.releaseLock(lockKey, lockValue)
-        await this.redisService.publishSeatUpdate({ seatNumber, status: SeatStatus.RESERVED })
+        await this.redisService.publishSeatUpdate({ seatNumber, status: SeatStatus.AVAILABLE })
         await this.redisService.publishAuditLog({
           event: 'BOOKING_TIMEOUT',
           seatNumber,

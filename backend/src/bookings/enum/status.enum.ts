@@ -1,6 +1,6 @@
 export enum Status {
-    PENDING = 'pending',
-    BOOKED = 'booked',
-    TIMEOUT = 'timeout',
-    CANCELLED = 'cancelled',
+    PENDING = 'PENDING',
+    BOOKED = 'BOOKED',
+    TIMEOUT = 'TIMEOUT',
+    CANCELLED = 'CANCELLED',
 }

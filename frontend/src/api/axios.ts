@@ -13,12 +13,7 @@ export const getToken = () => _accessToken
 
 api.interceptors.request.use(async (config) => {
     const token = getToken()
-    if (!token) {
-        config.headers.Authorization = `Bearer ${token}`
-    }
-    const user = auth.currentUser
-    if (user) {
-        const token = await user.getIdToken()
+    if (token) {
         config.headers.Authorization = `Bearer ${token}`
     }
     return config
