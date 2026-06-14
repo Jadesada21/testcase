@@ -55,7 +55,11 @@ export default function HomePage() {
                                     <div className="flex gap-2">
                                         {seats
                                             .filter((s) => s.seatNumber.startsWith(row))
-                                            .sort((a, b) => a.seatNumber.localeCompare(b.seatNumber))
+                                            .sort((a, b) => {
+                                                const numA = parseInt(a.seatNumber.slice(1))
+                                                const numB = parseInt(b.seatNumber.slice(1))
+                                                return numA - numB
+                                            })
                                             .map((seat) => (
                                                 <SeatCard key={seat._id} seat={seat} />
                                             ))}
@@ -67,13 +71,13 @@ export default function HomePage() {
 
                 <div className="flex gap-6 mt-10 justify-center text-sm text-gray-400">
                     <span className="flex items-center gap-2">
-                        <span className="flex items-center gap-2"><span className="w-4 h-4 rounded bg-gray-700" /> Available</span>
+                        <span className="flex items-center gap-2"><span className="w-4 h-4 rounded bg-green-700" /> Available</span>
                     </span>
                     <span className="flex items-center gap-2">
-                        <span className="flex items-center gap-2"><span className="w-4 h-4 rounded bg-gray-700" /> Locked</span>
+                        <span className="flex items-center gap-2"><span className="w-4 h-4 rounded bg-yellow-700" /> Locked</span>
                     </span>
                     <span className="flex items-center gap-2">
-                        <span className="flex items-center gap-2"><span className="w-4 h-4 rounded bg-gray-700" /> Booked</span>
+                        <span className="flex items-center gap-2"><span className="w-4 h-4 rounded bg-red-700" /> Booked</span>
                     </span>
                 </div>
             </div>

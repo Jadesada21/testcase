@@ -13,12 +13,24 @@ export default function SeatCard({ seat }: Props) {
 
     const bookMutation = useMutation({
         mutationFn: () => createBooking(seat.seatNumber),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['seats'] }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['seats'] })
+            alert(`Book a seat ${seat.seatNumber} succesfully! , Your have 5 minute for payment`)
+        },
+        onError: (e: any) => {
+            alert(`Book a seat failed ${e?.response?.data?.message ?? 'Please try again'}`)
+        }
     })
 
     const confirmMutation = useMutation({
         mutationFn: (id: string) => confirmBooking(id),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['seats'] }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['seats'] })
+            alert(`Payment completed! Seat ${seat.seatNumber} comfirmed`)
+        },
+        onError: (e: any) => {
+            alert(`Payment Failed: ${e?.response?.data?.message ?? 'Please try again'}`)
+        }
     })
 
     const isMylocked = seat.status === 'LOCKED' && seat.userId === user?.uid
@@ -31,9 +43,12 @@ export default function SeatCard({ seat }: Props) {
 
     const handleClick = () => {
         if (seat.status === 'AVAILABLE') {
-            bookMutation.mutate()
+            if (confirm(`Want to booked seat ${seat.seatNumber} Yes or No`)) {
+                bookMutation.mutate()
+            }
         } else if (isMylocked) {
-            confirmMutation.mutate(seat._id)
+            if (confirm(`Want to pay for seat ${seat.seatNumber} Yes or NO`))
+                confirmMutation.mutate(seat._id)
         }
     }
 
@@ -41,7 +56,7 @@ export default function SeatCard({ seat }: Props) {
         <div
             onClick={handleClick}
             title={isMylocked ? 'Click for confirm payment' : seat.seatNumber}
-            className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-mono font-bold text-white transition-all ${bgColor}`}
+            className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-mono font-bold text-black transition-all ${bgColor}`}
         >
             {bookMutation.isPending || confirmMutation.isPending
                 ? '...'
