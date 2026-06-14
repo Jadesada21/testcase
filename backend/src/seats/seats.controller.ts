@@ -11,7 +11,7 @@ export class SeatsController {
   }
 
   @Get(':seatNumber')
-  findOne(@Param('id') seatNumber: string) {
+  findOne(@Param('seatNumber') seatNumber: string) {
     return this.seatsService.findOne(seatNumber);
   }
 

@@ -33,12 +33,12 @@ export default function AdminPage() {
                         <tbody>
                             {bookings.map((b) => (
                                 <tr key={b._id} className="border-t border-gray-800 hover:bg-gray-900">
-                                    <td className="py-3 px-4 font-mono"></td>
+                                    <td className="py-3 px-4 font-mono">{b.seatNumber}</td>
                                     <td className="py-3 px-4 text-gray-400 truncate max-w-50">{b.userId}</td>
                                     <td className="py-3 px-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${b.status === 'CONFIRMED' ? 'bg-green-900 text-green-300' :
-                                            b.status === 'PENDING' ? 'bg-yellow-900 text-yellow-300' :
-                                                'bg-red-900 text-red-300'
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${b.status === 'BOOKED' ? 'bg-green-700 text-black' :
+                                            b.status === 'PENDING' ? 'bg-yellow-700 text-black' :
+                                                'bg-red-700 text-black'
                                             }`}>
                                             {b.status}
                                         </span>

@@ -1,12 +1,13 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { Booking } from './schema/bookings.schema';
-import { Model, Types } from 'mongoose';
+import { isValidObjectId, Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Seat, SeatStatus } from '../seats/schema/seats.schema';
 import { RedisService } from '../redis/redis.service';
 import { ResponseDto } from './schema/response.dto';
 import { Status } from './enum/status.enum';
+
 
 const LOCK_TTL_SECONDS = 300
 
@@ -19,11 +20,24 @@ export class BookingsService {
   ) { }
 
 
-  async createBooking(userId: string, createBookingDto: CreateBookingDto): Promise<ResponseDto> {
+  async createBooking(
+    userId: string,
+    createBookingDto: CreateBookingDto
+  ): Promise<ResponseDto> {
     const { seatNumber } = createBookingDto
 
-    const lockKey = `lock:seat:${seatNumber}`
-    const lockValue = `${userId}-${Date.now()}`
+    if (!userId || typeof userId !== 'string') {
+      throw new BadRequestException('Invalid userId')
+    }
+
+    if (!isValidObjectId(userId)) {
+      throw new BadRequestException('Invalid ObjectId format')
+    }
+
+    const objectId = new Types.ObjectId(userId)
+
+    const lockKey = `seat:${seatNumber}`
+    const lockValue = `${userId}-${Date()}`
 
     const acquired = await this.redisService.acquireLock(
       lockKey,
@@ -41,17 +55,26 @@ export class BookingsService {
     }
 
     try {
-      const seat = await this.seatModel.findOne({ seatNumber })
-      if (!seat) throw new BadRequestException('Not found seat')
-      if (seat.status !== SeatStatus.AVAILABLE) {
-        throw new BadRequestException('Seat not available')
-      }
+      const seat = await this.seatModel.findOneAndUpdate(
+        {
+          seatNumber, status: SeatStatus.AVAILABLE
+        },
+        {
+          $set: {
+            status: SeatStatus.LOCKED,
+            lockedBy: objectId
 
-      seat.status = SeatStatus.LOCKED
-      seat.lockedBy = new Types.ObjectId(userId)
-      await seat.save()
+          },
+        },
+        {
+          returnDocument: 'after',
+        }
+      )
+      if (!seat) throw new BadRequestException('Seat not available')
 
       const lockedUntil = new Date(Date.now() + LOCK_TTL_SECONDS * 1000)
+
+
       const booking = await this.bookingModel.create({
         userId,
         seatId: seat._id,
@@ -69,6 +92,7 @@ export class BookingsService {
         lockedUntil,
       })
 
+
       this.scheduleAutoRelease(booking._id.toString(), seatNumber, lockKey, lockValue)
 
       return {
@@ -79,6 +103,8 @@ export class BookingsService {
     } catch (err) {
       await this.redisService.releaseLock(lockKey, lockValue)
       throw err
+    } finally {
+      console.log(`[BOOKING] seat=${seatNumber} done`)
     }
   }
 
@@ -116,23 +142,29 @@ export class BookingsService {
 
   private scheduleAutoRelease(bookingId: string, seatNumber: string, lockKey: string, lockValue: string) {
     setTimeout(async () => {
-      const booking = await this.bookingModel.findById(bookingId)
-      if (booking && booking.status === Status.PENDING) {
-        booking.status = Status.TIMEOUT
-        await booking.save()
 
-        await this.seatModel.findOneAndUpdate(
-          { seatNumber },
-          { status: SeatStatus.AVAILABLE, lockedBy: null }
-        )
-        await this.redisService.releaseLock(lockKey, lockValue)
-        await this.redisService.publishSeatUpdate({ seatNumber, status: SeatStatus.AVAILABLE })
-        await this.redisService.publishAuditLog({
-          event: 'BOOKING_TIMEOUT',
-          seatNumber,
-          bookingId,
-        })
-      }
+      const updated = await this.bookingModel.findOneAndUpdate(
+        { _id: bookingId, status: Status.PENDING },
+        { status: Status.TIMEOUT },
+        { returnDocument: 'after' }
+      )
+
+      if (!updated) return
+
+      await this.seatModel.findOneAndUpdate(
+        { seatNumber, status: SeatStatus.LOCKED },
+        { status: SeatStatus.AVAILABLE, lockedBy: null },
+        { new: true }
+      )
+
+      await this.redisService.releaseLock(lockKey, lockValue)
+      await this.redisService.publishSeatUpdate({ seatNumber, status: SeatStatus.AVAILABLE })
+      await this.redisService.publishAuditLog({
+        event: 'BOOKING_TIMEOUT',
+        seatNumber,
+        bookingId,
+      })
+
     }, LOCK_TTL_SECONDS * 1000)
   }
 

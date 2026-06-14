@@ -2,7 +2,7 @@ import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Redis } from 'ioredis'
 import { Payload } from './payload/payload';
-import { timestamp } from 'rxjs';
+
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {

@@ -30,10 +30,14 @@ api.interceptors.response.use(
             const user = auth.currentUser
             if (user) {
                 try {
-                    const freshToken = await user.getIdToken(true)
-                    originalRequest.headers.Authorization = `Bearer ${freshToken}`
+                    const idToken = await user.getIdToken(true)
+                    const res = await api.post('/auth/login', { idToken })
+                    const newJwt = res.data.access_token
+                    setToken(newJwt)
+                    originalRequest.headers.Authorization = `Bearer ${newJwt}`
                     return api(originalRequest)
                 } catch {
+                    setToken(null)
                     await auth.signOut()
                 }
             } else {

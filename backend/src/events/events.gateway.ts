@@ -31,19 +31,19 @@ export class EventsGateway implements OnGatewayInit, OnModuleInit {
   private subscribeToRedis() {
     const subscriber = this.redisService.getSubscriber()
 
-    subscriber.subscribe('seat:update', 'audit:logs', (err) => {
+    subscriber.subscribe('seat:updates', 'audit:logs', (err) => {
       if (err) this.logger.error('Redis subscribe error ', err)
     })
 
     subscriber.on('message', async (channel, message) => {
       const payload = JSON.parse(message)
 
-      if (channel === 'seat:update') {
+      if (channel === 'seat:updates') {
         this.server.emit('seat:updated', payload)
         this.logger.log(`seat:updated > ${payload.seatNumber} = ${payload.status}`)
       }
 
-      if (channel === 'audit:log') {
+      if (channel === 'audit:logs') {
         await this.auditLogModel.create({
           event: payload.event,
           seatNumber: payload.seatNumber,

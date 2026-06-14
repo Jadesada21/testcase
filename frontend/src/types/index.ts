@@ -6,15 +6,14 @@ export interface Seat {
     _id: string
     seatNumber: string
     status: SeatStatus
-    userId?: string
     lockedBy?: string | null
+    userId?: string | null
 }
 
-export type BookingStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "TIMEOUT"
+export type BookingStatus = "PENDING" | "BOOKED" | "CANCELLED" | "TIMEOUT"
 
 export interface Booking {
     _id: string
-    bookingId: string
     seatNumber: string
     userId: string
     status: BookingStatus

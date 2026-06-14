@@ -17,7 +17,7 @@ export class AdminController {
     return this.adminService.getAllBookings(filter)
   }
 
-  @Get('audit-log')
+  @Get('audit-logs')
   async getAuditLog(@Query('event') event?: string) {
     return this.adminService.getAuditLogs({ event })
   }

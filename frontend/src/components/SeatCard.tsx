@@ -2,10 +2,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createBooking, confirmBooking } from '../api'
 import { useAuth } from '../hooks/useAuth'
 import { type Booking, type Seat } from '../types'
+import { useEffect } from 'react'
 
 interface Props {
     seat: Seat
     myBooking?: Booking
+
 }
 
 
@@ -38,28 +40,44 @@ export default function SeatCard({ seat, myBooking }: Props) {
         }
     })
 
+
     const isMylocked = seat.status === 'LOCKED' && seat.lockedBy === userId
-    const isMyBooked = seat.status === 'BOOKED' && seat.userId === userId
+
+    const isMyBooked = myBooking?.status === 'BOOKED' && myBooking.userId === userId
+
 
     const bgColor =
-        seat.status === "AVAILABLE" ? "bg-green-700 hover:bg-blue-600 cursor-pointer" :
-            seat.status === "LOCKED" && isMylocked ? "bg-pink-500 cursor-pointer" :
-                seat.status === "LOCKED" ? "bg-yellow-700 cursor-not-allowed" :
-                    seat.status === "BOOKED" && isMyBooked ? "bg-red-700 cursor-not-allowed" :
-                        'bg-white cursor-not-allowed'
+        seat.status === "AVAILABLE"
+            ? "bg-green-700 hover:bg-blue-600 cursor-pointer"
+
+            : seat.status === "LOCKED" && isMylocked
+                ? "bg-pink-700 cursor-pointer"
+
+                : seat.status === "LOCKED"
+                    ? "bg-yellow-700 cursor-not-allowed"
+
+                    : isMyBooked
+                        ? "bg-red-700 cursor-not-allowed"
+
+                        : 'bg-white cursor-not-allowed'
+
 
     const handleClick = () => {
         if (seat.status === 'AVAILABLE') {
             if (confirm(`Would you like to book seat ${seat.seatNumber} ?`)) {
                 bookMutation.mutate()
             }
-        } else if (isMylocked) {
+            return
+        }
+
+        if (isMylocked && myBooking?._id) {
             if (confirm(`Confirm payment for this seat ${seat.seatNumber} ?`)) {
-                console.log('myBooking:', myBooking)
-                confirmMutation.mutate(myBooking?.bookingId ?? myBooking?._id!)
+                confirmMutation.mutate(myBooking._id)
             }
+            return
         }
     }
+
 
     return (
         <div
