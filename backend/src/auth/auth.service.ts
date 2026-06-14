@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 
+import './firebase-admin'
 import { DecodedIdToken, getAuth } from 'firebase-admin/auth';
 
 @Injectable()
@@ -15,7 +16,8 @@ export class AuthService {
         let decoded: DecodedIdToken
         try {
             decoded = await getAuth().verifyIdToken(idToken)
-        } catch {
+        } catch (err) {
+            console.error('Firebase verify error:', err) // เพิ่มบรรทัดนี้
             throw new UnauthorizedException(`Invalid Firebase token`)
         }
 

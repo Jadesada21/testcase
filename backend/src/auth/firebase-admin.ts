@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv'
+dotenv.config()
+
 import { initializeApp, getApps, cert } from 'firebase-admin'
 
 if (!getApps().length) {
