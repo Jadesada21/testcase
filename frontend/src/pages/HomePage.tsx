@@ -3,7 +3,7 @@ import { getSeats } from '../api'
 import { useSocket } from '../hooks/useSocket'
 import { useAuth } from '../hooks/useAuth'
 import { type Seat } from '../types'
-// import SeatCard from '../components/SeatCard'
+import SeatCard from '../components/SeatCard'
 
 export default function HomePage() {
     const { user, logout } = useAuth()
@@ -22,7 +22,7 @@ export default function HomePage() {
             <nav className="flex items-center justify-between px-8 py-4 border-b border-gray-800">
                 <h1 className="text-lg font-bold">Cinema Booking</h1>
                 <div className="flex items-center gap-4">
-                    <span className="flex items-center gap-4">{user?.name}</span>
+                    <span className="flex items-center gap-4">{user?.displayName}</span>
                     <button
                         onClick={logout}
                         className="text-sm text-gray-400 hover:text-white transition cursor-pointer active:scale-90"
@@ -53,7 +53,7 @@ export default function HomePage() {
                                         .filter((s) => s.seatNumber.startsWith(row))
                                         .sort((a, b) => a.seatNumber.localeCompare(b.seatNumber))
                                         .map((seat) => (
-                                            // <SeatCard key={seat._id} seat={seat} />
+                                            <SeatCard key={seat._id} seat={seat} />
                                         ))}
                                 </div>
                             </div>
