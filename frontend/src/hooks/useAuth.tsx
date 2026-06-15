@@ -10,6 +10,7 @@ interface AuthContextType {
     logout: () => Promise<void>
     accessToken: string | null
     userId: string | null
+    role: string | null
 }
 
 
@@ -18,7 +19,8 @@ const AuthContext = createContext<AuthContextType>({
     loading: true,
     logout: async () => { },
     accessToken: null,
-    userId: null
+    userId: null,
+    role: null
 })
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -26,6 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true)
     const [accessToken, setAccessToken] = useState<string | null>(null)
     const [userId, setUserId] = useState<string | null>(null)
+    const [role, setRole] = useState<string | null>(null)
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -36,6 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     setToken(res.access_token)
                     setAccessToken(res.access_token)
                     setUserId(res.user.id)
+                    setRole(res.user.role)
                 } catch (err) {
                     console.error('Backend login failed', err)
                 }
@@ -50,10 +54,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setToken(null)
         setAccessToken(null)
         setUserId(null)
+        setRole(null)
         await signOut(auth)
     }
     return (
-        <AuthContext.Provider value={{ user, loading, logout, accessToken, userId }}>
+        <AuthContext.Provider value={{ user, loading, logout, accessToken, userId, role }}>
             {children}
         </AuthContext.Provider>
     )

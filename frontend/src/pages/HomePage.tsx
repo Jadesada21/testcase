@@ -4,9 +4,10 @@ import { useSocket } from '../hooks/useSocket'
 import { useAuth } from '../hooks/useAuth'
 import { type Booking, type Seat } from '../types'
 import SeatCard from '../components/SeatCard'
+import { Link } from 'react-router-dom'
 
 export default function HomePage() {
-    const { user, logout } = useAuth()
+    const { user, role, logout } = useAuth()
     useSocket()
 
     const { data: seats = [], isLoading } = useQuery<Seat[]>({
@@ -31,10 +32,16 @@ export default function HomePage() {
         return acc
     }, {} as Record<string, Seat[]>)
 
+
     return (
         <div className="min-h-screen bg-gray-950 text-white">
             <nav className="flex items-center justify-between px-8 py-4 border-b border-gray-800">
-                <h1 className="text-lg font-bold">Cinema Booking</h1>
+                <div className="flex items-center text-lg font-bold gap-20">
+                    <h1>Cinema Booking</h1>
+                    {role === "ADMIN" &&
+                        <Link to="/admin" className="hover:text-red-600">Admin Panel</Link>
+                    }
+                </div>
                 <div className="flex items-center gap-4">
                     <span className="flex items-center gap-4">{user?.displayName}</span>
                     <button

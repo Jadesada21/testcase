@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAdminBookings, getAuditLog } from "../api";
 import { type Booking, type AuditLog } from '../types'
+import { Link } from "react-router-dom";
 
 export default function AdminPage() {
     const { data: bookings = [] } = useQuery<Booking[]>({
@@ -14,8 +15,17 @@ export default function AdminPage() {
     })
 
     return (
-        <div className="min h-screen bg-gray-950 text-white p-8">
-            <h1 className="text-2xl font-bold mb-8">Admin Panel</h1>
+        <div className="min h-screen bg-[#030712] text-white p-10">
+            <div className="flex items-center justify-between text-2xl font-bold mb-8">
+                <div>
+                    <h1 >Admin Panel</h1>
+                </div>
+                <div className="hover:text-red-600">
+                    <Link to="/">Back</Link>
+                </div>
+
+            </div>
+
 
             {/* Booking */}
             <section className="mb-10">
@@ -54,7 +64,7 @@ export default function AdminPage() {
             </section >
 
             {/* Audit log */}
-            <section>
+            <section className="mb-10">
                 <h2 className="text-lg font-semibold mb-4 text-gray-300">Audit Logs</h2>
                 <div className="overflow-x-auto rounded-xl border border-gray-800">
                     <table className="w-full text-sm">
@@ -81,8 +91,6 @@ export default function AdminPage() {
                     </table>
                 </div>
             </section>
-
-
         </div >
     )
 
