@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createBooking, confirmBooking } from '../api'
 import { useAuth } from '../hooks/useAuth'
 import { type Booking, type Seat } from '../types'
-import { useEffect } from 'react'
 
 interface Props {
     seat: Seat

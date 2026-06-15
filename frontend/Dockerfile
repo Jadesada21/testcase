@@ -1,6 +1,6 @@
 FROM node:22-alpine AS builder
 
-WORKDIR /APP
+WORKDIR /app
 
 COPY package*.json ./
 
@@ -10,10 +10,10 @@ COPY . .
 
 RUN npm run build
 
-FROM ngnix:alpine
+FROM nginx:alpine
 
-COPY --from=builder /app/dist /usr/share/ngnix/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 80
 
-CMD ["nxinx" , "-g" , "daemon off;"]
+CMD ["nginx", "-g", "daemon off;"]
