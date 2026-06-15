@@ -3,7 +3,7 @@ import { check } from 'k6';
 
 export default function () {
     const payload = JSON.stringify({
-        seatNumber: 'A4',
+        seatNumber: 'A1',
     });
 
     const params = {
